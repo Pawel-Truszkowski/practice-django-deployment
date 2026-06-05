@@ -18,9 +18,8 @@ on:
             key: ${{ secrets.SERVER_SSH_KEY }}
             script: |
               cd /project/practice-django-deployment/
-              git pull
-              docker compose -f docker-compose.prod.yml up -d --build
-              docker compose exec web python manage.py migrate
-              docker compose exec web python manage.py collectstatic
-              --noinput
+              git pull origin main
+              docker compose up -d --build
+              docker compose exec -T web python manage.py migrate
+              docker compose exec -T web python manage.py collectstatic --noinput
             
