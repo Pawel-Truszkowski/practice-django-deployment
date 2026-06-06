@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /project/practice-django-deployment/
+            cd /home/frog/project/practice-django-deployment
             git pull origin main
             docker compose up -d --build
             docker compose exec -T web python manage.py migrate
