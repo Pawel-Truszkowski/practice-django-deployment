@@ -1,63 +1,49 @@
-> :white_check_mark: *Jeśli będziesz mieć problem z rozwiązaniem tego zadania, poproś o pomoc na odpowiednim kanale na Slacku, tj. `s14-django-deployment` (dotyczy [mentee](https://devmentor.pl/mentoring/)) lub na ogólnodostępnej i bezpłatnej [społeczności na Discordzie](https://devmentor.pl/discord). Pamiętaj, aby treść Twojego wpisu spełniała [odpowiednie kryteria](https://devmentor.pl/jak-prosic-o-pomoc/).*
+## Backup bazy danych
 
- 
+### Zmienne środowiskowe
 
-# `#05` Django: Deployment aplikacji
+Skrypt korzysta z tych samych zmiennych co aplikacja (plik `.env`):
 
-Twoim zadaniem jest przygotowanie mechanizmu **automatycznego backupu bazy danych PostgreSQL** w środowisku produkcyjnym.
+| Zmienna | Domyślna wartość | Opis |
+|---|---|---|
+| `DB_NAME` | `postgres` | Nazwa bazy danych |
+| `DB_USER` | `postgres` | Użytkownik bazy danych |
+| `COMPOSE_SERVICE` | `db` | Nazwa serwisu w docker-compose |
 
----
+### Ręczne uruchomienie
 
-## Zakres zadania
+```bash
+./backup.sh
+```
 
-1. Utwórz skrypt `backup.sh`, który:
+### Konfiguracja crona
 
-   * wykonuje `pg_dump` bazy danych działającej w Docker Compose,
-   * zapisuje plik backupu w katalogu `backups/`,
-   * nadaje nazwę pliku w formacie: `backup_YYYYMMDD_HHMM.sql`.
+Otwórz edytor crona:
+```bash
+crontab -e
+```
 
-2. Skrypt powinien:
+Dodaj linię (backup codziennie o 02:00):
 
-   * korzystać ze zmiennych środowiskowych (nazwa bazy, użytkownik),
-   * działać z poziomu hosta (np. przez `docker compose exec`),
-   * zwracać kod błędu, jeśli backup się nie powiedzie.
+```bash
+0 2 * * * cd /home/user/project && ./backup.sh >> /home/user/project/backups/cron.log 2>&1
+```
 
-3. Dodaj mechanizm czyszczenia starych backupów:
+Sprawdź czy cron jest dodany:
+```bash
+crontab -l
+```
 
-   * usuń pliki starsze niż 7 dni.
+### Weryfikacja backupu
 
-4. Dodaj zadanie cron (opis w README), które:
+```bash
+# Lista backupów
+ls -lh backups/
 
-   * uruchamia `backup.sh` codziennie o 02:00.
+# Sprawdź zawartość backupu
+head -20 backups/backup_20260607_0200.sql
+```
 
----
+Prawidłowy backup zaczyna się od linii:
 
-## Wymagania funkcjonalne
-
-* Po uruchomieniu `./backup.sh` w katalogu `backups/` pojawia się nowy plik `.sql`.
-* Plik zawiera strukturę i dane bazy (nie jest pusty).
-* Backupy starsze niż 7 dni są automatycznie usuwane.
-* Skrypt kończy się błędem (exit code ≠ 0), jeśli połączenie z bazą się nie powiedzie.
-
----
-
-## Wskazówki
-
-* Możesz użyć: `docker compose exec -T db pg_dump ...`
-* Użyj `date +"%Y%m%d_%H%M"` do generowania nazwy pliku.
-* Do czyszczenia plików użyj `find backups -type f -mtime +7 -delete`.
-
----
-
-## Twoje rozwiązanie powinno zawierać
-
-* plik `backup.sh`,
-* katalog `backups/` (ignorowany w repo),
-* wpis w `.gitignore`,
-* instrukcję konfiguracji crona w `README.md`.
-
- 
-
-> :no_entry: *Jeśli nie posiadasz materiałów do tego zadania tj. **PDF, projekt + Code Review**, znajdziesz je na stronie [devmentor.pl](https://devmentor.pl/workshop-django-deployment)*
-
-> :arrow_left: [*poprzednie zadanie*](./../04) | ~~*następne zadanie*~~ :arrow_right:
+-- PostgreSQL database dump
